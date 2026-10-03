@@ -12,13 +12,19 @@ Vue 3、React、Next.js、Vanilla HTML などあらゆるフロントエンド�
 
 ## インストール
 
-GitHub Packages (`@kanmon-hq` スコープ) からインストールします。プロジェクト直下の `.npmrc` に以下を設定してください：
+### npm からインストール (推奨)
+
+```bash
+npm install @kanmon-hq/kura-ui
+```
+
+### GitHub Packages からインストール
+
+プロジェクト直下の `.npmrc` に以下を設定してインストールします：
 
 ```ini
 @kanmon-hq:registry=https://npm.pkg.github.com
 ```
-
-その後、パッケージをインストールします：
 
 ```bash
 npm install @kanmon-hq/kura-ui
@@ -68,4 +74,4 @@ export function KuraAdminPage() {
 
 ## ライセンス
 
-Apache-2.0
+MPL-2.0

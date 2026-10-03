@@ -3,6 +3,7 @@ name: Release & Publish Package
 permissions:
   contents: write
   packages: write
+  id-token: write
 
 on:
   push:
@@ -17,7 +18,7 @@ on:
 
 jobs:
   publish:
-    name: Build & Publish to GitHub Packages
+    name: Build & Publish Package
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -27,29 +28,55 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@kanmon-hq'
           cache: 'npm'
+
+      - name: Upgrade npm to latest (Required for Trusted Publishing OIDC)
+        run: npm install -g npm@latest
 
       - name: Install Dependencies
         run: npm ci
 
-      - name: Sync Version from Tag or Input
+      - name: Set Package Version from Git Tag
         run: |
+          TARGET_VERSION=""
           if [ -n "${{ github.event.inputs.version }}" ]; then
-            npm version "${{ github.event.inputs.version }}" --no-git-tag-version --allow-same-version
+            TARGET_VERSION="${{ github.event.inputs.version }}"
           elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-            TAG_VERSION="${GITHUB_REF_NAME#v}"
-            npm version "$TAG_VERSION" --no-git-tag-version --allow-same-version
+            TARGET_VERSION="${GITHUB_REF_NAME#v}"
+          elif [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TARGET_VERSION="${GITHUB_REF_NAME}"
           fi
+
+          if [ -z "$TARGET_VERSION" ]; then
+            echo "Error: No release version could be determined from tag or inputs."
+            exit 1
+          fi
+
+          TARGET_VERSION="${TARGET_VERSION#v}"
+          echo "Setting package version to: $TARGET_VERSION"
+          npm version "$TARGET_VERSION" --no-git-tag-version --allow-same-version
 
       - name: Type Check & Build
         run: npm run build
 
       - name: Publish to GitHub Packages
-        run: npm publish
+        run: |
+          echo "//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}" > ~/.npmrc
+          npm publish --registry https://npm.pkg.github.com
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npmjs.com
+        run: |
+          if [ -n "${{ secrets.NPM_TOKEN }}" ]; then
+            echo "Publishing to npmjs.com using NPM_TOKEN (initial release)..."
+            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+            npm publish --registry https://registry.npmjs.org --access public --provenance
+          else
+            echo "Publishing to npmjs.com using OIDC Trusted Publishing..."
+            rm -f ~/.npmrc
+            npm publish --registry https://registry.npmjs.org --access public --provenance
+          fi
 
       - name: Create GitHub Release
         env:
