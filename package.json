@@ -1,5 +1,5 @@
 {
-  "name": "@kanmon/kura-ui",
+  "name": "@kanmon-hq/kura-ui",
   "version": "0.1.0",
   "description": "Web Components UI suite for Kura LLM Gateway & Token Broker",
   "type": "module",
@@ -11,8 +11,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/kura-ui.js",
       "require": "./dist/kura-ui.umd.cjs"
-    },
-    "./style.css": "./dist/style.css"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanmon-hq/kura-ui.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
   },
   "files": [
     "dist",
