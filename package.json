@@ -1,6 +1,6 @@
 {
   "name": "@kanmon-hq/kura-ui",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Web Components UI suite for Kura LLM Gateway & Token Broker",
   "type": "module",
   "main": "./dist/kura-ui.umd.cjs",
